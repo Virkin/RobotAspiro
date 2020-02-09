@@ -31,54 +31,40 @@ namespace RobotAspiro
         /// </summary>
         private void InitializeComponent()
         {
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            this.components = new System.ComponentModel.Container();
+            this.gameTimer = new System.Windows.Forms.Timer(this.components);
+
+            this.board = new System.Windows.Forms.PictureBox();
+            ((System.ComponentModel.ISupportInitialize)(this.board)).BeginInit();
             this.SuspendLayout();
             // 
-            // pictureBox1
+            // board
             // 
-            this.pictureBox1.BackColor = System.Drawing.SystemColors.ActiveBorder;
-            this.pictureBox1.Location = new System.Drawing.Point(12, 12);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(500, 500);
-            this.pictureBox1.TabIndex = 0;
-            this.pictureBox1.TabStop = false;
-            this.pictureBox1.Paint += new System.Windows.Forms.PaintEventHandler(this.pictureBox1_Paint);
+            this.board.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            this.board.Location = new System.Drawing.Point(12, 12);
+            this.board.Name = "board";
+            this.board.Size = new System.Drawing.Size(500, 500);
+            this.board.TabIndex = 0;
+            this.board.TabStop = false;
+            this.board.Paint += new System.Windows.Forms.PaintEventHandler(this.board_Paint);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1106, 727);
-            this.Controls.Add(this.pictureBox1);
+            this.Controls.Add(this.board);
             this.Name = "Form1";
             this.Text = "Form1";
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.board)).EndInit();
             this.ResumeLayout(false);
 
         }
 
-        private void pictureBox1_Paint(object sender, PaintEventArgs e)
-        {
-            Graphics g = e.Graphics;
-            int numOfCells = 5;
-            int cellSize = 100;
-            Pen p = new Pen(Color.Black);
-
-            for (int y = 0; y < numOfCells; y++)
-            {
-                g.DrawLine(p, 0, y * cellSize, numOfCells * cellSize, y * cellSize);
-            }
-
-            for (int x = 0; x < numOfCells; x++)
-            {
-                g.DrawLine(p, x * cellSize, 0, x * cellSize, numOfCells * cellSize);
-            }
-        }
-
         #endregion
 
-        private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.PictureBox board;
+        private System.Windows.Forms.Timer gameTimer;
     }
 }
 
