@@ -26,7 +26,6 @@ namespace RobotAspiro
         private Image vaccumImage = Image.FromFile("../../robotAspiro.png");
 
         private Vaccum vaccum;
-        private Queue queue;
 
         private Queue vaccumMove;
         private int cptMove = 0;
@@ -38,12 +37,11 @@ namespace RobotAspiro
         {
             InitializeComponent();
 
-            this.queue = new Queue();
             this.vaccumMove = new Queue();
 
             vaccumPos = new Cell(1, 1);
 
-            this.vaccum = new Vaccum(queue);
+            this.vaccum = new Vaccum(this);
 
             Thread t = new Thread(new ThreadStart(this.vaccum.run));
             t.Start();
@@ -56,10 +54,10 @@ namespace RobotAspiro
             gameTimer.Tick += UpdateScreen;
             gameTimer.Start();
 
-            vaccumMove.Enqueue('L');
+            /*vaccumMove.Enqueue('L');
             vaccumMove.Enqueue('U');
             vaccumMove.Enqueue('R');
-            vaccumMove.Enqueue('D');
+            vaccumMove.Enqueue('D');*/
 
             StartGame();
         }
@@ -69,9 +67,30 @@ namespace RobotAspiro
             GenerateDirt();
         }
 
-        private int[,] getMap()
+        public Cell GetVaccumPos()
         {
-            return this.map;
+            return vaccumPos;
+        }
+
+        public int getNumOfCells()
+        {
+            return numOfCells;
+        }
+
+        public int[,] getMap()
+        {
+            
+            return (int[,]) map.Clone();
+        }
+
+        public void setVaccumMove(List<char> vaccumActions)
+        { 
+            foreach(char action in vaccumActions)
+            {
+                vaccumMove.Enqueue(action);
+            }
+
+            while(vaccumMove.Count > 0) { continue; }
         }
 
         private void GenerateDirt()
@@ -87,8 +106,6 @@ namespace RobotAspiro
                 newDirt.x = rand.Next(0, numOfCells);
                 newDirt.y = rand.Next(0, numOfCells);
 
-                map[newDirt.y, newDirt.x] = 1;
-
                 findCell = true;
 
                 foreach (Cell dirt in dirts)
@@ -101,7 +118,8 @@ namespace RobotAspiro
                     }
                 }
             }
-            
+
+            map[newDirt.y, newDirt.x] = 1;
 
             dirts.Add(newDirt);
 
@@ -113,26 +131,18 @@ namespace RobotAspiro
             Random rand = new Random();
             int prob = rand.Next(0, 100);
 
-            if (prob >= 100 - (intervalMs / 1000))
+            if (prob >= 100 - ((float) maxMove/intervalMs))
             {
                 GenerateDirt();
             }
 
-            if(vaccumMove.Count == 0)
+            /*if(vaccumMove.Count == 0)
             {
                 vaccumMove.Enqueue('L');
                 vaccumMove.Enqueue('U');
                 vaccumMove.Enqueue('R');
                 vaccumMove.Enqueue('D');
-            }
-           
-            if (this.queue.Count > 0)
-            {
-                if ((string)this.queue.Dequeue() == "getMap")
-                {
-                    this.queue.Enqueue(getMap());
-                }
-            }
+            }*/
 
             board.Invalidate();
         }
@@ -163,50 +173,87 @@ namespace RobotAspiro
                 g.DrawImage(dirtImage, dirt.x * cellSize, dirt.y* cellSize, srcRect, units);
             }
 
-            if (cptMove <= maxMove)
+            if(vaccumMove.Count > 0)
             {
-                switch (vaccumMove.Peek())
+                if (cptMove <= maxMove)
                 {
-                    case 'L':
-                        g.DrawImage(vaccumImage, (vaccumPos.x * cellSize) - (cptMove * (cellSize / maxMove)), vaccumPos.y * cellSize, srcRect, units);
-                        break;
+                    switch (vaccumMove.Peek())
+                    {
+                        case 'L':
+                            g.DrawImage(vaccumImage, cellSize * (vaccumPos.x - ((float)cptMove / maxMove)), vaccumPos.y * cellSize, srcRect, units);
+                            break;
 
-                    case 'R':
-                        g.DrawImage(vaccumImage, (vaccumPos.x * cellSize) + (cptMove * (cellSize / maxMove)), vaccumPos.y * cellSize, srcRect, units);
-                        break;
-                    case 'U':
-                        g.DrawImage(vaccumImage, vaccumPos.x * cellSize, (vaccumPos.y * cellSize) - (cptMove * (cellSize / maxMove)), srcRect, units);
-                        break;
-                    case 'D':
-                        g.DrawImage(vaccumImage, vaccumPos.x * cellSize, (vaccumPos.y * cellSize) + (cptMove * (cellSize / maxMove)), srcRect, units);
-                        break;
+                        case 'R':
+                            g.DrawImage(vaccumImage, cellSize * (vaccumPos.x + ((float)cptMove / maxMove)), vaccumPos.y * cellSize, srcRect, units);
+                            break;
+
+                        case 'U':
+                            g.DrawImage(vaccumImage, vaccumPos.x * cellSize, cellSize * (vaccumPos.y - ((float)cptMove / maxMove)), srcRect, units);
+                            break;
+
+                        case 'D':
+                            g.DrawImage(vaccumImage, vaccumPos.x * cellSize, cellSize * (vaccumPos.y + ((float)cptMove / maxMove)), srcRect, units);
+                            break;
+                        case 'C':
+                            g.DrawImage(vaccumImage, vaccumPos.x * cellSize, vaccumPos.y * cellSize, srcRect, units);
+                            map[vaccumPos.y, vaccumPos.x] = 0;
+
+                            foreach (Cell dirt in dirts)
+                            {
+
+                                if (vaccumPos.x == dirt.x && vaccumPos.y == dirt.y)
+                                {
+                                    dirts.Remove(dirt);
+                                    break;
+                                }
+                            }
+
+                            cptMove = maxMove;
+                            break;
+                        case 'P':
+                            g.DrawImage(vaccumImage, vaccumPos.x * cellSize, vaccumPos.y * cellSize, srcRect, units);
+                            
+                            if(map[vaccumPos.y, vaccumPos.x] == 3)
+                            {
+                                map[vaccumPos.y, vaccumPos.x] = 1;
+                            }
+                            else if(map[vaccumPos.y, vaccumPos.x] == 2)
+                            {
+                                map[vaccumPos.y, vaccumPos.x] = 0;
+                            }
+                            
+                            cptMove = maxMove;
+                            break;
+                    }
+                    cptMove++;
+                }
+                else
+                {
+                    cptMove = 0;
+                    char move = (char)vaccumMove.Dequeue();
+
+                    switch (move)
+                    {
+                        case 'L':
+                            vaccumPos.x -= 1;
+                            break;
+
+                        case 'R':
+                            vaccumPos.x += 1;
+                            break;
+                        case 'U':
+                            vaccumPos.y -= 1;
+                            break;
+                        case 'D':
+                            vaccumPos.y += 1;
+                            break;
+                    }
+
+                    g.DrawImage(vaccumImage, vaccumPos.x * cellSize, vaccumPos.y * cellSize, srcRect, units);
 
                 }
-                cptMove++;
-                Console.WriteLine("move");
             }
-            else
-            {
-                cptMove = 0;
-                char move = (char)vaccumMove.Dequeue();
-
-                switch (move)
-                {
-                    case 'L':
-                        vaccumPos.x -= 1;
-                        break;
-
-                    case 'R':
-                        vaccumPos.x += 1;
-                        break;
-                    case 'U':
-                        vaccumPos.y -= 1;
-                        break;
-                    case 'D':
-                        vaccumPos.y += 1;
-                        break;
-                }
-            }
+            
         }
     }
 }
