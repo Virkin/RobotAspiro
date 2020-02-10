@@ -72,7 +72,7 @@ namespace RobotAspiro
             {
                 for (int j = 0; j < beliefs.GetLength(1); j++)
                 {
-                    if (beliefs[i,j] == 1)
+                    if (beliefs[i,j] > 0)
                     {
                         currentCell.x = j;
                         currentCell.y = i;
@@ -94,8 +94,8 @@ namespace RobotAspiro
 
             if(nbDirt == 0)
             {
-                bestCell.x = 0;
-                bestCell.y = 0;
+                bestCell.x = 2;
+                bestCell.y = 2;
             }
 
             //Console.WriteLine("Dist : " + myCell.getDistance(bestCell));

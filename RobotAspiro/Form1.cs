@@ -15,6 +15,11 @@ namespace RobotAspiro
     public partial class Form1 : Form
     {
         private List<Cell> dirts = new List<Cell>();
+        private int cptDirt;
+
+        private List<Cell> jewells = new List<Cell>();
+        private int cptJewell;
+
         private Cell vaccumPos;
 
         private int numOfCells = 5;
@@ -23,13 +28,17 @@ namespace RobotAspiro
         private int[,] map;
 
         private Image dirtImage = Image.FromFile("../../D.png");
+        private Image jewellImage = Image.FromFile("../../J.png");
+        private Image dirtJewellImage = Image.FromFile("../../DJ.png");
         private Image vaccumImage = Image.FromFile("../../robotAspiro.png");
 
         private Vaccum vaccum;
 
         private Queue vaccumMove;
+        
         private int cptMove = 0;
         private int maxMove = 60;
+        private double speed = 2;
 
         private int intervalMs;
 
@@ -59,12 +68,6 @@ namespace RobotAspiro
             vaccumMove.Enqueue('R');
             vaccumMove.Enqueue('D');*/
 
-            StartGame();
-        }
-
-        private void StartGame()
-        {
-            GenerateDirt();
         }
 
         public Cell GetVaccumPos()
@@ -119,22 +122,76 @@ namespace RobotAspiro
                 }
             }
 
-            map[newDirt.y, newDirt.x] = 1;
+            if (map[newDirt.y, newDirt.x] == 2)
+            {
+                map[newDirt.y, newDirt.x] = 3;
+            }
+            else
+            {
+                map[newDirt.y, newDirt.x] = 1;
+            }
 
             dirts.Add(newDirt);
 
             //Console.WriteLine("x:" + newDirt.x + " | y: "+newDirt.y);
         }
 
+        private void GenerateJewel()
+        {
+            Cell newJewell = new Cell();
+
+            Random rand = new Random();
+
+            Boolean findCell = false;
+
+            while (!findCell)
+            {
+                newJewell.x = rand.Next(0, numOfCells);
+                newJewell.y = rand.Next(0, numOfCells);
+
+                findCell = true;
+
+                foreach (Cell jewell in jewells)
+                {
+
+                    if (newJewell.x == jewell.x && newJewell.y == jewell.y)
+                    {
+                        findCell = false;
+                        break;
+                    }
+                }
+            }
+
+            if (map[newJewell.y, newJewell.x] == 1)
+            {
+                map[newJewell.y, newJewell.x] = 3;
+            }
+            else
+            {
+                map[newJewell.y, newJewell.x] = 2;
+            }
+
+            jewells.Add(newJewell);
+        }
+
         private void UpdateScreen(object sender, EventArgs e)
         {
-            Random rand = new Random();
-            int prob = rand.Next(0, 100);
 
-            if (prob >= 100 - ((float) maxMove/intervalMs))
+            if (cptDirt > 80)
             {
                 GenerateDirt();
+                cptDirt = 0;
             }
+           
+            cptDirt++; 
+
+            if(cptJewell > 100)
+            {
+                GenerateJewel();
+                cptJewell = 0;
+            }
+
+            cptJewell++;
 
             /*if(vaccumMove.Count == 0)
             {
@@ -165,7 +222,7 @@ namespace RobotAspiro
             RectangleF srcRect = new RectangleF(0, 0, 100, 100);
             GraphicsUnit units = GraphicsUnit.Pixel;
 
-            foreach (Cell dirt in dirts)
+            /*foreach (Cell dirt in dirts)
             {
                 // Create rectangle for source image.
 
@@ -173,26 +230,58 @@ namespace RobotAspiro
                 g.DrawImage(dirtImage, dirt.x * cellSize, dirt.y* cellSize, srcRect, units);
             }
 
-            if(vaccumMove.Count > 0)
+            foreach (Cell dirt in dirts)
             {
-                if (cptMove <= maxMove)
+                // Create rectangle for source image.
+
+                // Draw image to screen.
+                g.DrawImage(dirtImage, dirt.x * cellSize, dirt.y * cellSize, srcRect, units);
+            }*/
+
+            for (int i = 0; i < map.GetLength(0); i++)
+            {
+                for (int j = 0; j < map.GetLength(1); j++)
+                {
+                    if(map[i,j] > 0)
+                    {
+                        Image image = dirtImage;
+                        switch (map[i, j])
+                        {
+                            case 1:
+                                image = dirtImage;
+                                break;
+                            case 2:
+                                image = jewellImage;
+                                break;
+                            case 3:
+                                image = dirtJewellImage;
+                                break;
+                        }
+                        g.DrawImage(image, j * cellSize, i * cellSize, srcRect, units);
+                    }  
+                }
+            }
+
+            if (vaccumMove.Count > 0)
+            {
+                if (cptMove <= maxMove/speed)
                 {
                     switch (vaccumMove.Peek())
                     {
                         case 'L':
-                            g.DrawImage(vaccumImage, cellSize * (vaccumPos.x - ((float)cptMove / maxMove)), vaccumPos.y * cellSize, srcRect, units);
+                            g.DrawImage(vaccumImage, cellSize * (vaccumPos.x - ((float)speed * cptMove / maxMove)), vaccumPos.y * cellSize, srcRect, units);
                             break;
 
                         case 'R':
-                            g.DrawImage(vaccumImage, cellSize * (vaccumPos.x + ((float)cptMove / maxMove)), vaccumPos.y * cellSize, srcRect, units);
+                            g.DrawImage(vaccumImage, cellSize * (vaccumPos.x + ((float)speed * cptMove / maxMove)), vaccumPos.y * cellSize, srcRect, units);
                             break;
 
                         case 'U':
-                            g.DrawImage(vaccumImage, vaccumPos.x * cellSize, cellSize * (vaccumPos.y - ((float)cptMove / maxMove)), srcRect, units);
+                            g.DrawImage(vaccumImage, vaccumPos.x * cellSize, cellSize * (vaccumPos.y - ((float)speed * cptMove / maxMove)), srcRect, units);
                             break;
 
                         case 'D':
-                            g.DrawImage(vaccumImage, vaccumPos.x * cellSize, cellSize * (vaccumPos.y + ((float)cptMove / maxMove)), srcRect, units);
+                            g.DrawImage(vaccumImage, vaccumPos.x * cellSize, cellSize * (vaccumPos.y + ((float)speed * cptMove / maxMove)), srcRect, units);
                             break;
                         case 'C':
                             g.DrawImage(vaccumImage, vaccumPos.x * cellSize, vaccumPos.y * cellSize, srcRect, units);
@@ -208,7 +297,7 @@ namespace RobotAspiro
                                 }
                             }
 
-                            cptMove = maxMove;
+                            cptMove = (int) (maxMove/speed);
                             break;
                         case 'P':
                             g.DrawImage(vaccumImage, vaccumPos.x * cellSize, vaccumPos.y * cellSize, srcRect, units);
@@ -221,8 +310,18 @@ namespace RobotAspiro
                             {
                                 map[vaccumPos.y, vaccumPos.x] = 0;
                             }
-                            
-                            cptMove = maxMove;
+
+                            foreach (Cell jewell in jewells)
+                            {
+
+                                if (vaccumPos.x == jewell.x && vaccumPos.y == jewell.y)
+                                {
+                                    jewells.Remove(jewell);
+                                    break;
+                                }
+                            }
+
+                            cptMove = (int) (maxMove/speed);
                             break;
                     }
                     cptMove++;
