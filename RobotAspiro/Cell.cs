@@ -69,8 +69,6 @@ namespace RobotAspiro
                         }
                     }
                 }
-
-                //cell = tree[cell];
             }
 
             path.Add(this);

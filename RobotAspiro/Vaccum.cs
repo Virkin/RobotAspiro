@@ -257,11 +257,13 @@ namespace RobotAspiro
 
                 path.Clear();
 
-                // On peut choisir entre Breadth-first search ou un greedy search pour l'exploration
-                // Ici, le BFS est optimal car le coût par étape vaut 1
+                /* On peut choisir entre Breadth-first search ou un greedy search pour l'exploration
+                   Ici, le BFS est optimal car le coût par étape vaut 1
+                  
+                   Commenter en un et décommenter l'autre pour choisir un algo*/
 
-                path = BFS(startCell, endCell);
-                //path = Greedy(startCell, endCell);
+                //path = BFS(startCell, endCell);
+                path = Greedy(startCell, endCell);
 
                 setIntentions(path);
 
@@ -301,21 +303,16 @@ namespace RobotAspiro
         public List<Cell> Greedy(Cell start, Cell end)
         {
             
-            //Console.WriteLine("end cell :\n x:" + endCell.x + "y :" + endCell.y);
-
             Cell currentCell;
 
             Dictionary<Cell, Cell> tree = new Dictionary<Cell, Cell> { { start, null } };
-            //List<(Cell, int)> frontier = new List<(Cell, int)> {(startCell, 1000)};
+        
             Queue<(Cell, int)> frontier = new Queue<(Cell, int)>();
 
             frontier.Enqueue((start, 1000));
-            //frontier.Add((startCell, 0));
 
             while (frontier.Count > 0)
             {
-                //currentCell = frontier[0].Item1;
-                //frontier.RemoveAt(0);
                 currentCell = frontier.Dequeue().Item1;
 
                 if (currentCell.x == end.x && currentCell.y == end.y) break;
@@ -324,7 +321,6 @@ namespace RobotAspiro
                 {
                     if (tree.ContainsKey(cell)) { continue; }
 
-                    //frontier.Enqueue(cell);
                     frontier.Enqueue((cell, end.getDistance(cell)));
                     tree.Add(cell, currentCell);
                 }

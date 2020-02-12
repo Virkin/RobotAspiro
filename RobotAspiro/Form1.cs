@@ -187,7 +187,6 @@ namespace RobotAspiro
 
             dirts.Add(newDirt);
 
-            //Console.WriteLine("x:" + newDirt.x + " | y: "+newDirt.y);
         }
 
         // Génère un nouveau bijoux
