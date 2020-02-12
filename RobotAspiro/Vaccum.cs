@@ -10,40 +10,71 @@ namespace RobotAspiro
 {
     class Vaccum
     {
+        // Croyance du robot
         private int[,] beliefs;
+
+        // Désires du robot
         private List<Cell> desires = new List<Cell>();
+        
+        // Intentions du robot
         private List<char> intentions = new List<char>();
 
+        // Score
         private int[,] scores;
+        
+        // Nombre maximal d'action possible que le robot peut faire
         private int maxActions = 10;
-        private int nbActions;
-        private int bestNbActions;
-        private double probToChange = 1;
-        private int battery;
-        private int timer;
 
+        // Nombre d'action actuel choisi par le robot
+        private int nbActions;
+
+        // La meilleur action actuelle
+        private int bestNbActions;
+
+        // Probabilité de changé de nombre d'action réalisable même si potentiel inférieur à la meilleur
+        private double probToChange = 1;
+
+        // La cellule du robot
         private Cell myCell;
 
+        // L'environnement
         private Form1 env;
 
+        // Chronomètre pour un appretissage régulier
         private Stopwatch stopWatch = new Stopwatch();
 
+        // Constructeur
         public Vaccum(Form1 env)
         {
+            // Enregistrement de l'environneent
             this.env = env;
+
+            /* Initialisation du tableau de score pour l'apprentissage
+               Il y 3 colonnes pour chaque nombre d'action : 
+               - Nombre d'essaies, 
+               - Sommes des essaies 
+               - Moyenne */
             scores = new int[maxActions, 3];
 
+            // Démarrage du chronomètre
             stopWatch.Start();
 
+            // On définit le nombre initial d'action comme le maximum possible
             nbActions = maxActions;
             bestNbActions = maxActions;
         }
 
+        // Méthode pour l'appentissage du robot
         public void checkPerformance()
         {
+            // On incrémente de 1 le nombre d'essaie
             scores[nbActions - 1, 0] += 1;
+            // On ajoute le nouveau du dernier essaie à la somme existante
             scores[nbActions - 1, 1] += this.env.getVaccumScore();
+            // Calcule de la moyenne des essaies
             scores[nbActions - 1, 2] = scores[nbActions - 1, 1] / scores[nbActions - 1, 0];
+
+            // Affichage du tableau dans le terminal pour visualiser l'évolution de l'apprentissage
 
             Console.WriteLine("### Scores ###");
 
@@ -58,6 +89,8 @@ namespace RobotAspiro
 
             Console.WriteLine();
 
+            // On regarde quel est le meilleur nombre d'action selon les moyennes actuelles
+
             for (int i = 0; i < scores.GetLength(0); i++)
             {
                 if(scores[i, 0] > 0)
@@ -68,6 +101,14 @@ namespace RobotAspiro
                     }
                 }
             }
+
+            /* On réalise un recuit-simulé pour choisir quel nombre d'action choisir
+               Au début du lancement de programme on acceptera très souvent de choisir un nombre d'action qui n'est pas la meilleure
+               pour vérifier si elle est vraiment mauvaise.
+               L'environnement genèrant de manière aléatoire la poussière et le bijoux, le score obtenu varie beaucoup
+               Mais en effectuant la moyenne des scores, on remarque , au fur et à mesure,
+               que plus le nombre d'action est petit plus le score est bon.
+               Finalement, quand le programme est lancé depuis longtemps, on va prendre très souvent la meilleure solution.*/
 
             Random rand = new Random();
 
@@ -107,29 +148,24 @@ namespace RobotAspiro
         {
             while(true)
             {
+                // Boucle de l'agent
+                
+                // Utilisation des senseurs pour observer l'environnemnt (complètement observable dans notre cas)
                 useSensors();
 
-                /*for (int i = 0; i < beliefs.GetLength(0); i++)
-                {
-                    for (int j = 0; j < beliefs.GetLength(1); j++)
-                    {
-                        Console.Write(beliefs[i, j]);
-                    }
-                    Console.WriteLine();
-                }*/
-
-                //Console.WriteLine();
-
+                // Mis à jour de l'état mental du robot
                 updateMyState(myCell);
 
+                // Recherche des actions à effectuer pour satisfaire les désires du robot
                 chooseAnAction();
 
+                // Envoi des intentions vers l'environnement grâce aux effecteurs
                 doIt();
 
-                //System.Threading.Thread.Sleep(1000);
             }
         }
 
+        // Utilisaton des senseurs
         public void useSensors()
         {
             this.beliefs = env.getMap();
@@ -138,6 +174,7 @@ namespace RobotAspiro
 
         }
 
+        // Mis à jour de l'état mentale
         public void updateMyState(Cell actualCell, int dist=0)
         {
             Cell currentCell = new Cell();
@@ -147,7 +184,19 @@ namespace RobotAspiro
 
             int[,] map = (int[,]) beliefs.Clone();
 
-            while(dist < maxActions)
+            /* On regarde le score obtenu toute les minutes (temps ajustable en change le paramètre speed de l'environnemnt) 
+               et on redéfini le nombre d'action possible */ 
+            if (stopWatch.ElapsedMilliseconds > 60000 / env.getSpeed())
+            {
+                checkPerformance();
+                stopWatch.Reset();
+                stopWatch.Start();
+            }
+
+            /* Tant que l'on peut faire encore des actions,on cherche une nouvelle cellule
+               On cherchera toujous la plus proche selon la dernière trouvé*/
+
+            while (dist < nbActions)
             {   
                 for (int i = 0; i < map.GetLength(0); i++)
                 {
@@ -173,8 +222,10 @@ namespace RobotAspiro
                         }
                     }
                 }
+
                 if (nbDirt == 0)
                 {
+                    // On revient à l'état initial (au millieu) si aucune case n'est sale
                     desires.Add(new Cell(2, 2));
                     break;
                 }
@@ -189,22 +240,12 @@ namespace RobotAspiro
 
                 nbDirt = 0;
             } 
-
-            //Console.WriteLine("Dist : " + myCell.getDistance(bestCell));
-
-
-            if(stopWatch.ElapsedMilliseconds > 60000/env.getSpeed())
-            {
-                checkPerformance();
-                stopWatch.Reset();
-                stopWatch.Start();
-            }
         }
 
+
+        // Choix des actions à effectuer pour réaliser les désires
         public void chooseAnAction()
         {
-            // Breadth - first search
-
             Cell startCell = myCell;
             Cell endCell;
 
@@ -216,8 +257,11 @@ namespace RobotAspiro
 
                 path.Clear();
 
-                //path = BFS(startCell, endCell);
-                path = Greedy(startCell, endCell);
+                // On peut choisir entre Breadth-first search ou un greedy search pour l'exploration
+                // Ici, le BFS est optimal car le coût par étape vaut 1
+
+                path = BFS(startCell, endCell);
+                //path = Greedy(startCell, endCell);
 
                 setIntentions(path);
 
@@ -225,6 +269,7 @@ namespace RobotAspiro
             }
         }
 
+        // Algorithme du Breadth-first search
         public List<Cell> BFS(Cell start, Cell end)
         {
             Dictionary<Cell, Cell> tree = new Dictionary<Cell, Cell> { { start, null } };
@@ -252,6 +297,7 @@ namespace RobotAspiro
             return start.getCellPath(end, tree);
         }
 
+        // Algorithme du greedy search
         public List<Cell> Greedy(Cell start, Cell end)
         {
             
@@ -325,6 +371,7 @@ namespace RobotAspiro
             return newFrontier;
         }
 
+        // Ajoute une action dans la liste seulement si sa taille est inférieur au nombre d'actions autorisés
         public List<char> addActions(List<char> actions, char action)
         {
             if(actions.Count < nbActions)
@@ -335,6 +382,7 @@ namespace RobotAspiro
             return actions;
         }
         
+        // Mis à jours des intentions
         public void setIntentions(List<Cell> path)
         {
             List<char> actions = new List<char>();
@@ -351,10 +399,10 @@ namespace RobotAspiro
                         actions = addActions(actions, 'C');
                         break;
                     case 2:
-                        actions = addActions(actions, 'P');
+                        actions = addActions(actions, 'T');
                         break;
                     case 3:
-                        actions = addActions(actions, 'P');
+                        actions = addActions(actions, 'T');
                         actions = addActions(actions, 'C');
                         break;
                 }
@@ -374,6 +422,7 @@ namespace RobotAspiro
             this.intentions.AddRange(actions);
         }
 
+        // Envoi des actions vers l'environnement
         public void doIt()
         {
             env.setVaccumMove(this.intentions);

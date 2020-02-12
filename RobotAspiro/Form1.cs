@@ -14,71 +14,94 @@ namespace RobotAspiro
 {
     public partial class Form1 : Form
     {
+        
+        // Liste de poussière
         private List<Cell> dirts = new List<Cell>();
+        // Compteur de tempo de pop de poussière
         private int cptDirt;
 
+        // Liste de bijoux
         private List<Cell> jewells = new List<Cell>();
+        // Liste de compteur de bijoux
         private int cptJewell;
 
+        // Position du robot
         private Cell vaccumPos;
+        // Score du robot
         private int vaccumScore = 0;
 
+        // Nombre de cellule pour un coté du plateau
         private int numOfCells = 5;
+        // Taille des cellules (en px)
         private int cellSize = 100;
 
+        // Tableau de la carte de l'environnemet pour savoir rapidement l'état actuel
         private int[,] map;
 
+        // Chargement des sprites
         private Image dirtImage = Image.FromFile("../../dirt.png");
         private Image jewellImage = Image.FromFile("../../jewell.png");
-        private Image dirtJewellImage = Image.FromFile("../../DJ.png");
         private Image vaccumImage = Image.FromFile("../../robotAspiro.png");
 
+        // Le robot
         private Vaccum vaccum;
 
+        // Queue avec les actions envoyé par le roboy
         private Queue vaccumMove;
         
+        // Compteur de mouvement pour l'animation du robot
         private int cptMove = 0;
         private int maxMove = 60;
+
+        // Vitesse du robot
         private double speed = 2;
 
+        // Intervale de temps entre chaque refresh de l'interface
         private int intervalMs;
 
+        // Constructeur de l'environnement
         public Form1()
         {
+            // Initialisation des elements de l'interface
             InitializeComponent();
 
+            // Initialisation de la queue de mouvement
             this.vaccumMove = new Queue();
 
+            // Position initial du robot
             vaccumPos = new Cell(1, 1);
 
+            // Instantiation du robot
             this.vaccum = new Vaccum(this);
 
+            // Lancement du thread pour le robot
             Thread t = new Thread(new ThreadStart(this.vaccum.run));
             t.Start();
 
+            // Initialisation de la map
             map = new int[numOfCells, numOfCells];
 
+            // Initialisation des paramètre de rafraichissement de l'interface
             intervalMs = (int)(Math.Round(1000.0/maxMove));
 
             gameTimer.Interval = intervalMs;
             gameTimer.Tick += UpdateScreen;
             gameTimer.Start();
 
-            /*vaccumMove.Enqueue('L');
-            vaccumMove.Enqueue('U');
-            vaccumMove.Enqueue('R');
-            vaccumMove.Enqueue('D');*/
-
         }
 
+        // Retourne la position du robot
         public Cell GetVaccumPos()
         {
             return vaccumPos;
         }
 
+        // Retourne le score du robot
         public int getVaccumScore()
         {
             int score = vaccumScore;
+
+            // On ajoute +1 au score pour chaque case propre à chaque appel du getter.
             
             for (int i = 0; i < map.GetLength(0); i++)
             {
@@ -95,22 +118,27 @@ namespace RobotAspiro
             return score;
         }
 
+        // Retourne la taille de l'environnement
         public int getNumOfCells()
         {
             return numOfCells;
         }
 
+        // Retourne la map
         public int[,] getMap()
         {
             
             return (int[,]) map.Clone();
         }
 
+
+        // Retourne la vitesse
         public double getSpeed()
         {
             return speed;
         }
 
+        // Insert les actions dans la queue de mouvement du robot
         public void setVaccumMove(List<char> vaccumActions)
         { 
             foreach(char action in vaccumActions)
@@ -121,6 +149,7 @@ namespace RobotAspiro
             while(vaccumMove.Count > 0) { continue; }
         }
 
+        // Génère une nouvelle poussière
         private void GenerateDirt()
         {
             Cell newDirt = new Cell();
@@ -161,6 +190,7 @@ namespace RobotAspiro
             //Console.WriteLine("x:" + newDirt.x + " | y: "+newDirt.y);
         }
 
+        // Génère un nouveau bijoux
         private void GenerateJewel()
         {
             Cell newJewell = new Cell();
@@ -199,8 +229,12 @@ namespace RobotAspiro
             jewells.Add(newJewell);
         }
 
+        // Méthode appelé au début de chaque rafraichissement
         private void UpdateScreen(object sender, EventArgs e)
         {
+
+            /* On génère de nouvelles poussière ou bijoux régulièremnent
+               Ici, on génère légèrement plus de poussière mais les valeurs dans les ifs peuvent être modifié selon les envies */
 
             if (cptDirt > 80)
             {
@@ -218,19 +252,16 @@ namespace RobotAspiro
 
             cptJewell++;
 
-            /*if(vaccumMove.Count == 0)
-            {
-                vaccumMove.Enqueue('L');
-                vaccumMove.Enqueue('U');
-                vaccumMove.Enqueue('R');
-                vaccumMove.Enqueue('D');
-            }*/
-
+           
+            // Force le rafraichissement du board
             board.Invalidate();
         }
 
+        // "Repeint" le plateau avec les éléments mis à jours (nouvelles poussières, mouvement du robot, etc...)
         private void board_Paint(object sender, PaintEventArgs e)
         {
+            // Tracage des lignes du plateau
+            
             Graphics g = e.Graphics;
             Pen p = new Pen(Color.Black);
 
@@ -244,24 +275,10 @@ namespace RobotAspiro
                 g.DrawLine(p, x * cellSize, 0, x * cellSize, numOfCells * cellSize);
             }
 
+            // Affichage des poussière et des bijoux
+
             RectangleF srcRect = new RectangleF(0, 0, 100, 100);
             GraphicsUnit units = GraphicsUnit.Pixel;
-
-            /*foreach (Cell dirt in dirts)
-            {
-                // Create rectangle for source image.
-
-                // Draw image to screen.
-                g.DrawImage(dirtImage, dirt.x * cellSize, dirt.y* cellSize, srcRect, units);
-            }
-
-            foreach (Cell dirt in dirts)
-            {
-                // Create rectangle for source image.
-
-                // Draw image to screen.
-                g.DrawImage(dirtImage, dirt.x * cellSize, dirt.y * cellSize, srcRect, units);
-            }*/
 
             for (int i = 0; i < map.GetLength(0); i++)
             {
@@ -272,14 +289,19 @@ namespace RobotAspiro
                         Image image = dirtImage;
                         switch (map[i, j])
                         {
-                            case 1:
+                            // 1 = case poussière
+                            case 1: 
                                 image = dirtImage;
                                 g.DrawImage(image, j * cellSize, i * cellSize, srcRect, units);
                                 break;
+                            
+                            // 2 = case bijoux
                             case 2:
                                 image = jewellImage;
                                 g.DrawImage(image, j * cellSize, i * cellSize, srcRect, units);
                                 break;
+                            
+                            // 3 = case poussière/bijoux
                             case 3:
                                 image = dirtImage;
                                 g.DrawImage(image, j * cellSize, i * cellSize, srcRect, units);
@@ -292,38 +314,50 @@ namespace RobotAspiro
                 }
             }
 
+            // Animation du robot
+
             if (vaccumMove.Count > 0)
             {
                 if (cptMove <= maxMove/speed)
                 {
                     switch (vaccumMove.Peek())
                     {
+                        // L = Left
                         case 'L':
                             g.DrawImage(vaccumImage, cellSize * (vaccumPos.x - ((float)speed * cptMove / maxMove)), vaccumPos.y * cellSize, srcRect, units);
                             break;
 
+                        // R = Right
                         case 'R':
                             g.DrawImage(vaccumImage, cellSize * (vaccumPos.x + ((float)speed * cptMove / maxMove)), vaccumPos.y * cellSize, srcRect, units);
                             break;
 
+                        // U = Up
                         case 'U':
                             g.DrawImage(vaccumImage, vaccumPos.x * cellSize, cellSize * (vaccumPos.y - ((float)speed * cptMove / maxMove)), srcRect, units);
                             break;
 
+                        // D = Down
                         case 'D':
                             g.DrawImage(vaccumImage, vaccumPos.x * cellSize, cellSize * (vaccumPos.y + ((float)speed * cptMove / maxMove)), srcRect, units);
                             break;
+
+                        // C = Clean
                         case 'C':
                             g.DrawImage(vaccumImage, vaccumPos.x * cellSize, vaccumPos.y * cellSize, srcRect, units);
 
                             if (map[vaccumPos.y, vaccumPos.x] == 1)
                             {
+                                // On ajoute 3 points au score pour chaque poussière aspirer
                                 vaccumScore += 3;
                             }
                             else if (map[vaccumPos.y, vaccumPos.x] > 1)
                             {
+                                // Mais on en enlève 20 pour chaque bijoux ramasser par erreur
                                 vaccumScore -= 20;
                             }
+
+                            // Mis à jours du tableau du plateau et listes en conséquences
 
                             map[vaccumPos.y, vaccumPos.x] = 0;
 
@@ -337,9 +371,21 @@ namespace RobotAspiro
                                 }
                             }
 
+                            foreach (Cell jewell in jewells)
+                            {
+
+                                if (vaccumPos.x == jewell.x && vaccumPos.y == jewell.y)
+                                {
+                                    jewells.Remove(jewell);
+                                    break;
+                                }
+                            }
+
                             cptMove = (int) (maxMove/speed);
                             break;
-                        case 'P':
+
+                        // T = Take
+                        case 'T':
                             g.DrawImage(vaccumImage, vaccumPos.x * cellSize, vaccumPos.y * cellSize, srcRect, units);
                             
                             if(map[vaccumPos.y, vaccumPos.x] == 3)
@@ -357,6 +403,9 @@ namespace RobotAspiro
                                 if (vaccumPos.x == jewell.x && vaccumPos.y == jewell.y)
                                 {
                                     jewells.Remove(jewell);
+                                    
+                                    // On ajoute 3 points au score pour chaque bijoux pris.
+                                    
                                     vaccumScore += 3;
                                     break;
                                 }
@@ -366,17 +415,14 @@ namespace RobotAspiro
                             break;
                     }
 
-                    /*if (cptMove == 0 && map[vaccumPos.y, vaccumPos.x] > 0)
-                    {
-                        vaccumScore -= 5;
-                    }*/
-
                     cptMove++;
                 }
                 else
                 {
                     cptMove = 0;
                     char move = (char)vaccumMove.Dequeue();
+
+                    // On met à jour la position du robot selon l'action effectué
 
                     switch (move)
                     {
@@ -395,6 +441,7 @@ namespace RobotAspiro
                             break;
                     }
 
+                    // On enlève 1 points pour chaque action effectuer
                     vaccumScore -= 1;
 
                     g.DrawImage(vaccumImage, vaccumPos.x * cellSize, vaccumPos.y * cellSize, srcRect, units);
