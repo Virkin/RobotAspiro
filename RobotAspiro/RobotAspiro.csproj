@@ -83,8 +83,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="D.png" />
+    <Content Include="dirt.png" />
     <Content Include="DJ.png" />
     <Content Include="J.png" />
+    <Content Include="jewell.png" />
     <Content Include="robotAspiro.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -33,7 +33,6 @@ namespace RobotAspiro
         {
             this.components = new System.ComponentModel.Container();
             this.gameTimer = new System.Windows.Forms.Timer(this.components);
-
             this.board = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.board)).BeginInit();
             this.SuspendLayout();
@@ -52,7 +51,7 @@ namespace RobotAspiro
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1106, 727);
+            this.ClientSize = new System.Drawing.Size(523, 522);
             this.Controls.Add(this.board);
             this.Name = "Form1";
             this.Text = "Form1";

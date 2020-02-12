@@ -21,14 +21,15 @@ namespace RobotAspiro
         private int cptJewell;
 
         private Cell vaccumPos;
+        private int vaccumScore = 0;
 
         private int numOfCells = 5;
         private int cellSize = 100;
 
         private int[,] map;
 
-        private Image dirtImage = Image.FromFile("../../D.png");
-        private Image jewellImage = Image.FromFile("../../J.png");
+        private Image dirtImage = Image.FromFile("../../dirt.png");
+        private Image jewellImage = Image.FromFile("../../jewell.png");
         private Image dirtJewellImage = Image.FromFile("../../DJ.png");
         private Image vaccumImage = Image.FromFile("../../robotAspiro.png");
 
@@ -75,6 +76,25 @@ namespace RobotAspiro
             return vaccumPos;
         }
 
+        public int getVaccumScore()
+        {
+            int score = vaccumScore;
+            
+            for (int i = 0; i < map.GetLength(0); i++)
+            {
+                for (int j = 0; j < map.GetLength(1); j++)
+                {
+                    if(map[i,j] == 0)
+                    {
+                        score += 1;
+                    }
+                }
+            }
+
+            vaccumScore = 0;
+            return score;
+        }
+
         public int getNumOfCells()
         {
             return numOfCells;
@@ -84,6 +104,11 @@ namespace RobotAspiro
         {
             
             return (int[,]) map.Clone();
+        }
+
+        public double getSpeed()
+        {
+            return speed;
         }
 
         public void setVaccumMove(List<char> vaccumActions)
@@ -249,15 +274,20 @@ namespace RobotAspiro
                         {
                             case 1:
                                 image = dirtImage;
+                                g.DrawImage(image, j * cellSize, i * cellSize, srcRect, units);
                                 break;
                             case 2:
                                 image = jewellImage;
+                                g.DrawImage(image, j * cellSize, i * cellSize, srcRect, units);
                                 break;
                             case 3:
-                                image = dirtJewellImage;
+                                image = dirtImage;
+                                g.DrawImage(image, j * cellSize, i * cellSize, srcRect, units);
+                                image = jewellImage;
+                                g.DrawImage(image, j * cellSize, i * cellSize, srcRect, units);
                                 break;
                         }
-                        g.DrawImage(image, j * cellSize, i * cellSize, srcRect, units);
+                        
                     }  
                 }
             }
@@ -285,6 +315,16 @@ namespace RobotAspiro
                             break;
                         case 'C':
                             g.DrawImage(vaccumImage, vaccumPos.x * cellSize, vaccumPos.y * cellSize, srcRect, units);
+
+                            if (map[vaccumPos.y, vaccumPos.x] == 1)
+                            {
+                                vaccumScore += 3;
+                            }
+                            else if (map[vaccumPos.y, vaccumPos.x] > 1)
+                            {
+                                vaccumScore -= 20;
+                            }
+
                             map[vaccumPos.y, vaccumPos.x] = 0;
 
                             foreach (Cell dirt in dirts)
@@ -317,6 +357,7 @@ namespace RobotAspiro
                                 if (vaccumPos.x == jewell.x && vaccumPos.y == jewell.y)
                                 {
                                     jewells.Remove(jewell);
+                                    vaccumScore += 3;
                                     break;
                                 }
                             }
@@ -324,6 +365,12 @@ namespace RobotAspiro
                             cptMove = (int) (maxMove/speed);
                             break;
                     }
+
+                    /*if (cptMove == 0 && map[vaccumPos.y, vaccumPos.x] > 0)
+                    {
+                        vaccumScore -= 5;
+                    }*/
+
                     cptMove++;
                 }
                 else
@@ -347,6 +394,8 @@ namespace RobotAspiro
                             vaccumPos.y += 1;
                             break;
                     }
+
+                    vaccumScore -= 1;
 
                     g.DrawImage(vaccumImage, vaccumPos.x * cellSize, vaccumPos.y * cellSize, srcRect, units);
 
