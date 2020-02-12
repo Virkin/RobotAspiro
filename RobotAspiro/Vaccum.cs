@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace RobotAspiro
 {
-    class Vaccum
+    class Vacuum
     {
         // Croyance du robot
         private int[,] beliefs;
@@ -44,7 +44,7 @@ namespace RobotAspiro
         private Stopwatch stopWatch = new Stopwatch();
 
         // Constructeur
-        public Vaccum(Form1 env)
+        public Vacuum(Form1 env)
         {
             // Enregistrement de l'environneent
             this.env = env;
@@ -70,7 +70,7 @@ namespace RobotAspiro
             // On incrémente de 1 le nombre d'essaie
             scores[nbActions - 1, 0] += 1;
             // On ajoute le nouveau du dernier essaie à la somme existante
-            scores[nbActions - 1, 1] += this.env.getVaccumScore();
+            scores[nbActions - 1, 1] += this.env.getVacuumScore();
             // Calcule de la moyenne des essaies
             scores[nbActions - 1, 2] = scores[nbActions - 1, 1] / scores[nbActions - 1, 0];
 
@@ -108,7 +108,9 @@ namespace RobotAspiro
                L'environnement genèrant de manière aléatoire la poussière et le bijoux, le score obtenu varie beaucoup
                Mais en effectuant la moyenne des scores, on remarque , au fur et à mesure,
                que plus le nombre d'action est petit plus le score est bon.
-               Finalement, quand le programme est lancé depuis longtemps, on va prendre très souvent la meilleure solution.*/
+               Finalement, quand le programme est lancé depuis longtemps, on va prendre très souvent la meilleure solution,
+               la probabilité de choisir un autre nombre d'action diminuant au fur et à mesure de l'exécution.
+               Ici, le meilleure nombre d'action à effectuer sera normalement le minimum, soit 1*/
 
             Random rand = new Random();
 
@@ -170,7 +172,7 @@ namespace RobotAspiro
         {
             this.beliefs = env.getMap();
 
-            this.myCell = env.GetVaccumPos();
+            this.myCell = env.GetVacuumPos();
 
         }
 
@@ -184,7 +186,7 @@ namespace RobotAspiro
 
             int[,] map = (int[,]) beliefs.Clone();
 
-            /* On regarde le score obtenu toute les minutes (temps ajustable en change le paramètre speed de l'environnemnt) 
+            /* On regarde le score obtenu toute les minutes (temps ajustable en changant le paramètre speed de l'environnemnt) 
                et on redéfini le nombre d'action possible */ 
             if (stopWatch.ElapsedMilliseconds > 60000 / env.getSpeed())
             {
@@ -421,7 +423,7 @@ namespace RobotAspiro
         // Envoi des actions vers l'environnement
         public void doIt()
         {
-            env.setVaccumMove(this.intentions);
+            env.setVacuumMove(this.intentions);
 
             this.intentions.Clear();
             this.desires.Clear();

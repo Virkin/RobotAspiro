@@ -44,7 +44,7 @@ namespace RobotAspiro
         private Image vaccumImage = Image.FromFile("../../robotAspiro.png");
 
         // Le robot
-        private Vaccum vaccum;
+        private Vacuum vaccum;
 
         // Queue avec les actions envoyé par le roboy
         private Queue vaccumMove;
@@ -72,7 +72,7 @@ namespace RobotAspiro
             vaccumPos = new Cell(1, 1);
 
             // Instantiation du robot
-            this.vaccum = new Vaccum(this);
+            this.vaccum = new Vacuum(this);
 
             // Lancement du thread pour le robot
             Thread t = new Thread(new ThreadStart(this.vaccum.run));
@@ -91,13 +91,13 @@ namespace RobotAspiro
         }
 
         // Retourne la position du robot
-        public Cell GetVaccumPos()
+        public Cell GetVacuumPos()
         {
             return vaccumPos;
         }
 
         // Retourne le score du robot
-        public int getVaccumScore()
+        public int getVacuumScore()
         {
             int score = vaccumScore;
 
@@ -139,7 +139,7 @@ namespace RobotAspiro
         }
 
         // Insert les actions dans la queue de mouvement du robot
-        public void setVaccumMove(List<char> vaccumActions)
+        public void setVacuumMove(List<char> vaccumActions)
         { 
             foreach(char action in vaccumActions)
             {
